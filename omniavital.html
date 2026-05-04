@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OmniaVital — Jesse Harrick</title>
+<meta name="description" content="Voice-first AI wellness platform. ElevenLabs conversational AI, RAG supplement recommendations, behavioral retention agent.">
+<style>
+  :root {
+    --bg: #080808; --bg2: #0f0f0f; --bg3: #161616;
+    --border: #1f1f1f; --border2: #2a2a2a;
+    --text: #e8e8e8; --muted: #666; --muted2: #444;
+    --orange: #f97316; --orange-dim: rgba(249,115,22,0.12); --orange-border: rgba(249,115,22,0.3);
+    --teal: #14b8a6; --teal-dim: rgba(20,184,166,0.1); --teal-border: rgba(20,184,166,0.25);
+    --green: #22c55e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(8,8,8,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 40px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .nav-back { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.15s; }
+  .nav-back:hover { color: var(--text); }
+  .nav-name { font-weight: 700; font-size: 15px; color: var(--text); text-decoration: none; }
+  .nav-cta { background: var(--teal); color: white; padding: 7px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; text-decoration: none; }
+
+  .hero { min-height: 80vh; display: flex; flex-direction: column; justify-content: center; padding: 120px 40px 80px; max-width: 1000px; margin: 0 auto; }
+  .hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: var(--teal-dim); border: 1px solid var(--teal-border); border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--teal); margin-bottom: 28px; width: fit-content; }
+
+  h1 { font-size: clamp(40px, 6vw, 68px); font-weight: 800; line-height: 1.05; letter-spacing: -2px; margin-bottom: 20px; }
+  h1 span { color: var(--teal); }
+  .hero-sub { font-size: 19px; color: var(--muted); line-height: 1.7; max-width: 640px; margin-bottom: 36px; }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 56px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 9px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.15s; }
+  .btn-primary { background: var(--teal); color: white; }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-secondary { background: var(--bg3); border: 1px solid var(--border2); color: var(--text); }
+  .btn-ghost { color: var(--muted); border: 1px solid var(--border); background: transparent; }
+  .btn-ghost:hover { color: var(--text); }
+
+  .stats-row { display: flex; gap: 40px; flex-wrap: wrap; padding-top: 40px; border-top: 1px solid var(--border); }
+  .stat { display: flex; flex-direction: column; gap: 4px; }
+  .stat-val { font-size: 26px; font-weight: 800; color: var(--teal); letter-spacing: -1px; }
+  .stat-lbl { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  section { padding: 80px 40px; max-width: 1000px; margin: 0 auto; }
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--teal); margin-bottom: 12px; }
+  h2 { font-size: clamp(26px, 3.5vw, 38px); font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; }
+  .section-sub { font-size: 16px; color: var(--muted); max-width: 560px; margin-bottom: 40px; line-height: 1.6; }
+
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .feature-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; transition: border-color 0.2s; }
+  .feature-card:hover { border-color: var(--border2); }
+  .feature-icon { font-size: 24px; margin-bottom: 12px; }
+  .feature-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .feature-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  .pipeline { display: flex; flex-direction: column; gap: 16px; }
+  .pipeline-step { display: flex; align-items: flex-start; gap: 20px; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .pipeline-num { width: 36px; height: 36px; border-radius: 8px; background: var(--teal-dim); border: 1px solid var(--teal-border); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: var(--teal); flex-shrink: 0; }
+  .pipeline-content { flex: 1; }
+  .pipeline-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .pipeline-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .pipeline-tech { display: inline-block; font-size: 10px; font-weight: 700; background: var(--teal-dim); color: var(--teal); border: 1px solid var(--teal-border); border-radius: 4px; padding: 2px 8px; margin-top: 6px; }
+
+  .callout { background: var(--teal-dim); border: 1px solid var(--teal-border); border-radius: 10px; padding: 20px 24px; margin: 32px 0; font-size: 14px; color: var(--text); line-height: 1.7; }
+  .callout strong { color: var(--teal); }
+
+  .eval-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 32px; }
+  .eval-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .eval-metric { display: flex; flex-direction: column; gap: 8px; }
+  .eval-val { font-size: 32px; font-weight: 800; color: var(--teal); letter-spacing: -1px; }
+  .eval-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .eval-note { font-size: 13px; color: var(--muted); grid-column: 1/-1; border-top: 1px solid var(--border); padding-top: 16px; line-height: 1.6; }
+
+  .decision-list { display: flex; flex-direction: column; gap: 20px; }
+  .decision { background: var(--bg2); border: 1px solid var(--border); border-left: 3px solid var(--teal); border-radius: 0 10px 10px 0; padding: 20px 24px; }
+  .decision-q { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .decision-a { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  footer { text-align: center; padding: 40px; color: var(--muted2); font-size: 13px; border-top: 1px solid var(--border); }
+  footer a { color: var(--teal); text-decoration: none; }
+
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .hero { padding: 100px 20px 60px; }
+    section { padding: 48px 20px; }
+    h1 { letter-spacing: -1px; }
+    .eval-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-back">← Back</a>
+  <a href="index.html" class="nav-name">Jesse Harrick</a>
+  <a href="https://github.com/agenticjess-star/omniavital-v3" class="nav-cta" target="_blank">GitHub ↗</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">💊 Voice-First AI Platform</div>
+  <h1>Omnia<span>Vital.</span></h1>
+  <p class="hero-sub">AI wellness platform that reinvents the supplement experience. Voice-first onboarding, RAG-powered recommendations, behavioral retention agent — evaluated against pharmacist review on 30 test cases.</p>
+  <div class="hero-actions">
+    <a href="https://github.com/agenticjess-star/omniavital-v3" class="btn btn-primary" target="_blank">View on GitHub ↗</a>
+    <a href="index.html" class="btn btn-ghost">← Portfolio</a>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><span class="stat-val">Voice-First</span><span class="stat-lbl">Onboarding</span></div>
+    <div class="stat"><span class="stat-val">30</span><span class="stat-lbl">Pharmacist Test Cases</span></div>
+    <div class="stat"><span class="stat-val">RAG</span><span class="stat-lbl">Recommendation Engine</span></div>
+    <div class="stat"><span class="stat-val">Retention</span><span class="stat-lbl">Agent Layer</span></div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section>
+  <div class="section-label">Problem</div>
+  <h2>Supplements have a retention problem.</h2>
+  <p class="section-sub">Most supplement brands operate a broken model: acquire customers cheaply, ship product, watch them churn. No personalization, no engagement, no reason to come back.</p>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📦</div>
+      <div class="feature-title">Dropshipping ≠ wellness</div>
+      <div class="feature-desc">The standard model: white-label product, Facebook ad, one-time purchase. Zero relationship with the customer. No understanding of what they actually need.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🤷</div>
+      <div class="feature-title">Generic recommendations</div>
+      <div class="feature-desc">"Take Vitamin D." Great — how much? When? With what? The gap between what a product page says and what a pharmacist would tell you is enormous.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📉</div>
+      <div class="feature-title">85%+ churn rate</div>
+      <div class="feature-desc">Most supplement subscriptions die after one or two orders. No feedback loop, no adaptation, no reason for the customer to believe it's working.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏥</div>
+      <div class="feature-title">No biometric feedback loop</div>
+      <div class="feature-desc">Apple Watch tracks everything. None of it connects to your supplement stack. OmniaVital closes that loop — recommendations adapt to what your body is actually showing.</div>
+    </div>
+  </div>
+</section>
+
+<!-- THE SYSTEM -->
+<section>
+  <div class="section-label">System Design</div>
+  <h2>Three layers, one experience.</h2>
+  <p class="section-sub">Voice onboarding → RAG recommendation → retention agent. Each layer reinforces the next.</p>
+
+  <div class="pipeline">
+    <div class="pipeline-step">
+      <div class="pipeline-num">1</div>
+      <div class="pipeline-content">
+        <div class="pipeline-title">Voice Onboarding — "OV"</div>
+        <div class="pipeline-desc">ElevenLabs conversational AI handles intake. Asks about health goals, existing supplements, sleep, stress, diet. Natural conversation, not a form. Sub-500ms latency. Custom persona with supplement domain knowledge baked in. Outputs structured user profile for the recommendation engine.</div>
+        <span class="pipeline-tech">ElevenLabs Conversational AI</span>
+      </div>
+    </div>
+    <div class="pipeline-step">
+      <div class="pipeline-num">2</div>
+      <div class="pipeline-content">
+        <div class="pipeline-title">RAG Recommendation Engine</div>
+        <div class="pipeline-desc">User profile hits the RAG pipeline: query → vector search across supplement knowledge base (NIH studies, pharmacist-reviewed protocols, interaction warnings) → ranked results → structured recommendation with dosage, timing, and rationale. Every recommendation is sourced and explainable.</div>
+        <span class="pipeline-tech">RAG · Vector DB · Pharmacist-Reviewed Sources</span>
+      </div>
+    </div>
+    <div class="pipeline-step">
+      <div class="pipeline-num">3</div>
+      <div class="pipeline-content">
+        <div class="pipeline-title">Post-Purchase Dashboard</div>
+        <div class="pipeline-desc">Track supplements taken, biometrics from Apple Watch (sleep, HRV, activity), and user-reported outcomes. Visual trends over time. The dashboard closes the feedback loop — the user can see whether what they're taking is working.</div>
+        <span class="pipeline-tech">HealthKit · Biometric Tracking</span>
+      </div>
+    </div>
+    <div class="pipeline-step">
+      <div class="pipeline-num">4</div>
+      <div class="pipeline-content">
+        <div class="pipeline-title">Behavioral Retention Agent</div>
+        <div class="pipeline-desc">Background agent monitors adherence, biometric signals, and time-since-last-engagement. Surfaces nudges, check-ins, and recommendation updates at the right moment. Designed to genuinely help the user — but the engagement mechanics also drive re-subscription and upsell. Both are true simultaneously.</div>
+        <span class="pipeline-tech">Retention Agent · Behavioral Triggers</span>
+      </div>
+    </div>
+    <div class="pipeline-step">
+      <div class="pipeline-num">5</div>
+      <div class="pipeline-content">
+        <div class="pipeline-title">Community Layer</div>
+        <div class="pipeline-desc">Privacy-first community matching: users see color-gradient representations of other users' supplement stacks — similar profiles get matched without exposing personal health data. Drives social proof and retention without sacrificing privacy.</div>
+        <span class="pipeline-tech">Privacy-First · Color-Gradient Matching</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EVAL -->
+<section>
+  <div class="section-label">Evaluation</div>
+  <h2>I tested it against a pharmacist.</h2>
+  <p class="section-sub">Most AI wellness products never evaluate recommendation quality against domain experts. I did.</p>
+
+  <div class="eval-box">
+    <div class="eval-grid">
+      <div class="eval-metric">
+        <span class="eval-val">30</span>
+        <span class="eval-label">Test cases</span>
+      </div>
+      <div class="eval-metric">
+        <span class="eval-val">ASR</span>
+        <span class="eval-label">Failure modes tracked</span>
+      </div>
+      <div class="eval-metric">
+        <span class="eval-val">Latency</span>
+        <span class="eval-label">Tradeoffs logged</span>
+      </div>
+      <div class="eval-note">
+        Each test case: a user profile (health goals, existing supplements, conditions) fed to the RAG pipeline, generating a recommendation. A pharmacist reviewed each recommendation for accuracy, safety, and completeness. Failure modes were categorized: missing interactions, incorrect dosing, irrelevant recommendations. Results drove iteration on the retrieval strategy and prompt design — not just vibes.
+      </div>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top:32px;">
+    <strong>Why this matters:</strong> Evaluating an LLM system against a domain expert baseline is what separates a product from a demo. Most AI wellness apps ship without any ground-truth validation. The pharmacist review gave OmniaVital a real signal — and a benchmark to beat as the system improves.
+  </div>
+</section>
+
+<!-- KEY DECISIONS -->
+<section>
+  <div class="section-label">Design Decisions</div>
+  <h2>The calls that shaped the product.</h2>
+
+  <div class="decision-list">
+    <div class="decision">
+      <div class="decision-q">Why voice-first onboarding instead of a form?</div>
+      <div class="decision-a">Forms kill conversion in wellness. The intake process is personal — health goals, stress levels, sleep quality. A conversation feels appropriate; a form feels clinical. ElevenLabs' latency is now low enough that the voice agent doesn't feel like a bot. The output is also richer — users say more in conversation than they type in boxes.</div>
+    </div>
+    <div class="decision">
+      <div class="decision-q">Why RAG instead of a fine-tuned model?</div>
+      <div class="decision-a">Supplement science changes. Studies get updated. New interactions get discovered. A fine-tuned model bakes in a snapshot of knowledge at training time. RAG lets me update the knowledge base without retraining. It also makes recommendations explainable — I can show the user exactly which study or protocol a recommendation came from.</div>
+    </div>
+    <div class="decision">
+      <div class="decision-q">Why HealthKit instead of manual biometric entry?</div>
+      <div class="decision-a">Manual entry has zero retention. HealthKit already has the data — the user just needs to authorize it. Sleep, HRV, activity, weight — all available passively. Passive data collection is the only kind that works at scale for a health product.</div>
+    </div>
+    <div class="decision">
+      <div class="decision-q">Why color-gradient matching instead of profile matching for community?</div>
+      <div class="decision-a">Health data is deeply personal. Users won't share their supplement stack publicly. But they will engage with an abstracted representation that shows similarity without exposure. The color gradient is a privacy-preserving proxy for "people like you are doing X" — the most powerful wellness motivator there is.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>OmniaVital — Built by <a href="index.html">Jesse Harrick</a> · <a href="https://github.com/agenticjess-star/omniavital-v3" target="_blank">GitHub</a></p>
+</footer>
+</body>
+</html>

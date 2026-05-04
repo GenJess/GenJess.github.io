@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LocalCheck — Jesse Harrick</title>
+<meta name="description" content="Pickup sports community app. Real-time check-ins, ELO rankings, court discovery. React + SwiftUI + Supabase.">
+<style>
+  :root {
+    --bg: #080808; --bg2: #0f0f0f; --bg3: #161616;
+    --border: #1f1f1f; --border2: #2a2a2a;
+    --text: #e8e8e8; --muted: #666; --muted2: #444;
+    --orange: #f97316; --orange-dim: rgba(249,115,22,0.12); --orange-border: rgba(249,115,22,0.3);
+    --green: #22c55e; --green-dim: rgba(34,197,94,0.1);
+    --blue: #3b82f6; --blue-dim: rgba(59,130,246,0.1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(8,8,8,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 40px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .nav-back { color: var(--muted); font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 8px; transition: color 0.15s; }
+  .nav-back:hover { color: var(--text); }
+  .nav-name { font-weight: 700; font-size: 15px; color: var(--text); text-decoration: none; }
+  .nav-cta { background: var(--orange); color: white; padding: 7px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; text-decoration: none; }
+
+  .hero { min-height: 80vh; display: flex; flex-direction: column; justify-content: center; padding: 120px 40px 80px; max-width: 1000px; margin: 0 auto; }
+  .hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: var(--green-dim); border: 1px solid rgba(34,197,94,0.25); border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--green); margin-bottom: 28px; width: fit-content; }
+  .dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
+
+  h1 { font-size: clamp(40px, 6vw, 68px); font-weight: 800; line-height: 1.05; letter-spacing: -2px; margin-bottom: 20px; }
+  h1 span { color: var(--orange); }
+  .hero-sub { font-size: 19px; color: var(--muted); line-height: 1.7; max-width: 640px; margin-bottom: 36px; }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 56px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 9px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.15s; }
+  .btn-primary { background: var(--orange); color: white; }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-secondary { background: var(--bg3); border: 1px solid var(--border2); color: var(--text); }
+  .btn-secondary:hover { border-color: var(--muted2); }
+  .btn-ghost { color: var(--muted); border: 1px solid var(--border); background: transparent; }
+  .btn-ghost:hover { color: var(--text); }
+
+  .stats-row { display: flex; gap: 40px; flex-wrap: wrap; padding-top: 40px; border-top: 1px solid var(--border); }
+  .stat { display: flex; flex-direction: column; gap: 4px; }
+  .stat-val { font-size: 28px; font-weight: 800; color: var(--orange); letter-spacing: -1px; }
+  .stat-lbl { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  section { padding: 80px 40px; max-width: 1000px; margin: 0 auto; }
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--orange); margin-bottom: 12px; }
+  h2 { font-size: clamp(26px, 3.5vw, 38px); font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; }
+  .section-sub { font-size: 16px; color: var(--muted); max-width: 560px; margin-bottom: 40px; line-height: 1.6; }
+
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .feature-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; transition: border-color 0.2s; }
+  .feature-card:hover { border-color: var(--border2); }
+  .feature-icon { font-size: 24px; margin-bottom: 12px; }
+  .feature-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .feature-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  .tech-table { width: 100%; border-collapse: collapse; }
+  .tech-table th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .tech-table td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .tech-table td:first-child { color: var(--orange); font-weight: 600; width: 160px; }
+  .tech-table td:last-child { color: var(--muted); }
+  .tech-table tr:last-child td { border-bottom: none; }
+
+  .decision-list { display: flex; flex-direction: column; gap: 20px; }
+  .decision { background: var(--bg2); border: 1px solid var(--border); border-left: 3px solid var(--orange); border-radius: 0 10px 10px 0; padding: 20px 24px; }
+  .decision-q { font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+  .decision-a { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  .schema-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 28px; }
+  .schema-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .schema-table { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .schema-table-name { font-size: 12px; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .schema-fields { display: flex; flex-direction: column; gap: 4px; }
+  .schema-field { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; }
+
+  .callout { background: var(--orange-dim); border: 1px solid var(--orange-border); border-radius: 10px; padding: 20px 24px; margin: 32px 0; font-size: 14px; color: var(--text); line-height: 1.7; }
+  .callout strong { color: var(--orange); }
+
+  .tag { font-size: 11px; background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; color: var(--muted); display: inline-block; margin: 3px; }
+
+  footer { text-align: center; padding: 40px; color: var(--muted2); font-size: 13px; border-top: 1px solid var(--border); }
+  footer a { color: var(--orange); text-decoration: none; }
+
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .hero { padding: 100px 20px 60px; }
+    section { padding: 48px 20px; }
+    h1 { letter-spacing: -1px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-back">← Back</a>
+  <a href="index.html" class="nav-name">Jesse Harrick</a>
+  <a href="https://localcheck.lovable.app" class="nav-cta" target="_blank">Live App ↗</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow"><span class="dot"></span> Live in Production</div>
+  <h1>Local<span>Check.</span></h1>
+  <p class="hero-sub">The pickup basketball app that replaces group texts and empty courts. Real-time check-ins, ELO rankings, court discovery, game scheduling — built 0→1 with a full production backend.</p>
+  <div class="hero-actions">
+    <a href="https://localcheck.lovable.app" class="btn btn-primary" target="_blank">Open Live App ↗</a>
+    <a href="https://github.com/agenticjess-star/localcheck" class="btn btn-secondary" target="_blank">GitHub (76 commits)</a>
+    <a href="index.html" class="btn btn-ghost">← Portfolio</a>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><span class="stat-val">18</span><span class="stat-lbl">DB Tables</span></div>
+    <div class="stat"><span class="stat-val">76</span><span class="stat-lbl">Commits</span></div>
+    <div class="stat"><span class="stat-val">Real-time</span><span class="stat-lbl">Postgres Subs</span></div>
+    <div class="stat"><span class="stat-val">0→1</span><span class="stat-lbl">Shipped</span></div>
+  </div>
+</div>
+
+<!-- THE PROBLEM -->
+<section>
+  <div class="section-label">Problem</div>
+  <h2>Pickup basketball is broken.</h2>
+  <p class="section-sub">Not the game — the logistics. Every day, players drive to empty courts, spam group chats, or just skip going because they don't know if anyone will show.</p>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">😤</div>
+      <div class="feature-title">Empty courts</div>
+      <div class="feature-desc">No way to know if anyone's there before you make the drive. Google Maps shows where courts are — not what's happening.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <div class="feature-title">Group chat chaos</div>
+      <div class="feature-desc">50-message threads just to coordinate a run. "Anyone there?" repeated daily with no real answer.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏆</div>
+      <div class="feature-title">No competitive layer</div>
+      <div class="feature-desc">Results disappear after games end. No rankings, no history, no accountability. The court has no memory.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📅</div>
+      <div class="feature-title">Zero planning tools</div>
+      <div class="feature-desc">Nothing exists to say "I'll be at Zilker at 6pm Saturday." Players show up and hope.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section>
+  <div class="section-label">Features</div>
+  <h2>Everything the court was missing.</h2>
+  <p class="section-sub">Each feature serves a single interaction loop: Check in → See who's there → Play → Log results → Climb the ranks → Come back tomorrow.</p>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🟢</div>
+      <div class="feature-title">Real-Time Check-ins</div>
+      <div class="feature-desc">One tap to announce you're at the court. Everyone sees it instantly via Postgres LISTEN/NOTIFY. Auto-expires after 2 hours — no ghost players. Optional status notes ("Running 5s", "Looking for one more").</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📅</div>
+      <div class="feature-title">Schedule — Visual Planner</div>
+      <div class="feature-desc">Full day/week/month calendar where players post when they plan to show up. Interactive time-slot creation, player avatar timeline — reduces the uncertainty that keeps people home.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏆</div>
+      <div class="feature-title">ELO Rankings</div>
+      <div class="feature-desc">Every court has its own competitive hierarchy. Log 1v1 results, ELO handles the math. Default 1500. Score tracking, dispute flagging, court-scoped leaderboards. Your ranking follows you.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏃</div>
+      <div class="feature-title">Runs — Event Org</div>
+      <div class="feature-desc">Create structured pickup events: format (5v5, 3v3, King of the Court), player cap, RSVP tracking. Auto team generation using ELO-balanced shuffling.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🗺️</div>
+      <div class="feature-title">Court Discovery</div>
+      <div class="feature-desc">Dark-mode Mapbox map with orange pulsing markers. Add courts that don't exist on Google or Apple Maps. Nominatim geocoding (free, no API key). "Set as My Court" for your home base.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔔</div>
+      <div class="feature-title">Real-Time Notifications</div>
+      <div class="feature-desc">Court activity, match confirmations, dispute alerts — all delivered via Postgres change subscriptions. Zero-latency. No polling.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section>
+  <div class="section-label">Architecture</div>
+  <h2>The design decisions that matter.</h2>
+  <p class="section-sub">Every choice here was deliberate. Court-scoped data, adapter pattern, real-time via Postgres — not polling.</p>
+
+  <div class="decision-list">
+    <div class="decision">
+      <div class="decision-q">Why court-scoped everything?</div>
+      <div class="decision-a">The pivotal call: every piece of data (check-ins, plans, leaderboards, runs) is tied to a court_id. This creates natural micro-communities — your local court's leaderboard is yours. It makes the data model composable and the product feel personal. Changing this later would require rebuilding everything.</div>
+    </div>
+    <div class="decision">
+      <div class="decision-q">Why Postgres LISTEN/NOTIFY instead of polling?</div>
+      <div class="decision-a">Real-time presence is the core value prop. Polling every 5 seconds would add latency, cost, and complexity. Supabase's real-time subscriptions sit on Postgres change events — instant updates when someone checks in, live leaderboard after match results. The app would feel broken without it.</div>
+    </div>
+    <div class="decision">
+      <div class="decision-q">Why a database adapter pattern (src/lib/db.ts)?</div>
+      <div class="decision-a">App code never imports Supabase directly — it imports from db.ts. Swapping backends requires changing one file. Business logic stays clean and testable. Type safety enforced at the boundary. This was overkill for a personal project, but it's how production systems should be built.</div>
+    </div>
+    <div class="decision">
+      <div class="decision-q">Why Nominatim for geocoding instead of Google Maps?</div>
+      <div class="decision-a">Free, no API key, good coverage for court discovery. Courts are sparse enough that premium geocoding accuracy is wasted spend. If coverage gaps emerge in production, swapping to Mapbox Geocoding is a one-line change in the adapter.</div>
+    </div>
+    <div class="decision">
+      <div class="decision-q">Why ELO at default 1500?</div>
+      <div class="decision-a">Standard chess ELO baseline. Simple to explain to users, well-understood math, graceful convergence. The alternative (TrueSkill, Glicko-2) adds complexity with marginal accuracy gains for a casual pickup context. Good enough is correct here.</div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section>
+  <div class="section-label">Tech Stack</div>
+  <h2>What's under the hood.</h2>
+  <div class="section-sub">Chosen for speed, reliability, and zero operational overhead.</div>
+
+  <div class="schema-box">
+    <table class="tech-table">
+      <tr><th>Layer</th><th>Technology</th><th>Why</th></tr>
+      <tr><td>Framework</td><td>React 18 + TypeScript</td><td>Type safety, component model, ecosystem — the safe default for a production web app</td></tr>
+      <tr><td>Build</td><td>Vite + SWC</td><td>Sub-second HMR, fast builds — no waiting around during development</td></tr>
+      <tr><td>Styling</td><td>Tailwind CSS + CSS custom props</td><td>Utility-first with semantic design tokens for the "Court After Dark" theme</td></tr>
+      <tr><td>UI</td><td>shadcn/ui + Radix</td><td>Accessible, composable, unstyled by default — full control over aesthetics</td></tr>
+      <tr><td>Animation</td><td>Framer Motion</td><td>Declarative layout transitions, check-in animations</td></tr>
+      <tr><td>Maps</td><td>Mapbox GL JS</td><td>Dark-mode tiles, smooth interactions, custom marker support</td></tr>
+      <tr><td>Backend</td><td>Supabase (Postgres)</td><td>Auth, real-time subs, RLS, 18-table schema — zero infra management</td></tr>
+      <tr><td>Mobile</td><td>SwiftUI (iOS)</td><td>Native iOS feel, HealthKit-ready, parallel development alongside web</td></tr>
+      <tr><td>Routing</td><td>React Router v6</td><td>Standard SPA routing, no surprises</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- DB SCHEMA -->
+<section>
+  <div class="section-label">Database</div>
+  <h2>18 tables, fully typed.</h2>
+  <p class="section-sub">Every table has RLS policies. Every relationship is enforced at the DB layer. No application-level auth gates that can be bypassed.</p>
+
+  <div class="schema-grid">
+    <div class="schema-table">
+      <div class="schema-table-name">profiles</div>
+      <div class="schema-fields">
+        <span class="schema-field">id · user_id</span>
+        <span class="schema-field">username · avatar_url</span>
+        <span class="schema-field">home_court_id</span>
+        <span class="schema-field">created_at</span>
+      </div>
+    </div>
+    <div class="schema-table">
+      <div class="schema-table-name">courts</div>
+      <div class="schema-fields">
+        <span class="schema-field">id · name · address</span>
+        <span class="schema-field">lat · lng</span>
+        <span class="schema-field">surface · hoops</span>
+        <span class="schema-field">added_by · verified</span>
+      </div>
+    </div>
+    <div class="schema-table">
+      <div class="schema-table-name">checkins</div>
+      <div class="schema-fields">
+        <span class="schema-field">id · user_id</span>
+        <span class="schema-field">court_id · status</span>
+        <span class="schema-field">expires_at</span>
+        <span class="schema-field">note</span>
+      </div>
+    </div>
+    <div class="schema-table">
+      <div class="schema-table-name">elo_ratings</div>
+      <div class="schema-fields">
+        <span class="schema-field">user_id · court_id</span>
+        <span class="schema-field">rating (default 1500)</span>
+        <span class="schema-field">wins · losses</span>
+        <span class="schema-field">last_played</span>
+      </div>
+    </div>
+    <div class="schema-table">
+      <div class="schema-table-name">matches</div>
+      <div class="schema-fields">
+        <span class="schema-field">id · court_id</span>
+        <span class="schema-field">winner_id · loser_id</span>
+        <span class="schema-field">score · disputed</span>
+        <span class="schema-field">played_at</span>
+      </div>
+    </div>
+    <div class="schema-table">
+      <div class="schema-table-name">runs</div>
+      <div class="schema-fields">
+        <span class="schema-field">id · court_id</span>
+        <span class="schema-field">format · max_players</span>
+        <span class="schema-field">starts_at</span>
+        <span class="schema-field">created_by</span>
+      </div>
+    </div>
+    <div class="schema-table">
+      <div class="schema-table-name">run_rsvps</div>
+      <div class="schema-fields">
+        <span class="schema-field">run_id · user_id</span>
+        <span class="schema-field">status</span>
+        <span class="schema-field">joined_at</span>
+      </div>
+    </div>
+    <div class="schema-table">
+      <div class="schema-table-name">plans</div>
+      <div class="schema-fields">
+        <span class="schema-field">id · user_id</span>
+        <span class="schema-field">court_id</span>
+        <span class="schema-field">planned_at</span>
+        <span class="schema-field">note</span>
+      </div>
+    </div>
+    <div class="schema-table">
+      <div class="schema-table-name">notifications</div>
+      <div class="schema-fields">
+        <span class="schema-field">id · user_id</span>
+        <span class="schema-field">type · payload</span>
+        <span class="schema-field">read · created_at</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top:32px;">
+    <strong>RLS on every table.</strong> Users can only read/write their own records unless explicitly granted access. Leaderboard reads are public within a court. Match writes require both parties to be authenticated. Admin override via service role only.
+  </div>
+</section>
+
+<!-- WHAT I LEARNED -->
+<section>
+  <div class="section-label">Lessons</div>
+  <h2>What building this taught me.</h2>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🔄</div>
+      <div class="feature-title">Real-time is a product decision, not a tech one</div>
+      <div class="feature-desc">Adding real-time subs was trivial technically. The hard part was designing the UX so it feels expected, not jarring. When a new check-in appears mid-view, how does it animate in? These are product questions disguised as engineering ones.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏗️</div>
+      <div class="feature-title">Schema design is irreversible at scale</div>
+      <div class="feature-desc">The court_id scoping decision touched 12 of 18 tables. Getting it right before writing a single component saved weeks of refactoring. Most PMs never see this — building it taught me why DB design deserves as much time as feature specs.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <div class="feature-title">Web-first, mobile-second is a real tradeoff</div>
+      <div class="feature-desc">Sports apps live on mobile. The web app proved the concept but the adoption ceiling is real. iOS development alongside web doubled the surface area — one backend, two frontends, two different mental models of state management.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔐</div>
+      <div class="feature-title">RLS is a product feature, not an afterthought</div>
+      <div class="feature-desc">Designing row-level security forced me to think clearly about data ownership. Who can see what? Who can write what? These are product questions. Building it at the DB layer meant I couldn't be lazy about access control.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>LocalCheck — Built by <a href="index.html">Jesse Harrick</a> · <a href="https://localcheck.lovable.app" target="_blank">Live App</a> · <a href="https://github.com/agenticjess-star/localcheck" target="_blank">GitHub</a></p>
+</footer>
+</body>
+</html>

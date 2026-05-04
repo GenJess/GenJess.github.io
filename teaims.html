@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEAIMS — Jesse Harrick</title>
+<meta name="description" content="Multi-agent AI operating system with adversarial debate, HITL governance, and persistent audit logs.">
+<style>
+  :root {
+    --bg: #080808; --bg2: #0f0f0f; --bg3: #161616;
+    --border: #1f1f1f; --border2: #2a2a2a;
+    --text: #e8e8e8; --muted: #666; --muted2: #444;
+    --orange: #f97316; --orange-dim: rgba(249,115,22,0.12); --orange-border: rgba(249,115,22,0.3);
+    --purple: #a855f7; --purple-dim: rgba(168,85,247,0.1); --purple-border: rgba(168,85,247,0.25);
+    --green: #22c55e; --green-dim: rgba(34,197,94,0.1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(8,8,8,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 40px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .nav-back { color: var(--muted); font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 8px; transition: color 0.15s; }
+  .nav-back:hover { color: var(--text); }
+  .nav-name { font-weight: 700; font-size: 15px; color: var(--text); text-decoration: none; }
+  .nav-cta { background: var(--purple); color: white; padding: 7px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; text-decoration: none; }
+
+  .hero { min-height: 80vh; display: flex; flex-direction: column; justify-content: center; padding: 120px 40px 80px; max-width: 1000px; margin: 0 auto; }
+  .hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: var(--purple-dim); border: 1px solid var(--purple-border); border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--purple); margin-bottom: 28px; width: fit-content; }
+
+  h1 { font-size: clamp(40px, 6vw, 68px); font-weight: 800; line-height: 1.05; letter-spacing: -2px; margin-bottom: 20px; }
+  h1 span { color: var(--purple); }
+  .hero-sub { font-size: 19px; color: var(--muted); line-height: 1.7; max-width: 640px; margin-bottom: 36px; }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 56px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 9px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.15s; }
+  .btn-primary { background: var(--purple); color: white; }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-secondary { background: var(--bg3); border: 1px solid var(--border2); color: var(--text); }
+  .btn-ghost { color: var(--muted); border: 1px solid var(--border); background: transparent; }
+  .btn-ghost:hover { color: var(--text); }
+
+  .stats-row { display: flex; gap: 40px; flex-wrap: wrap; padding-top: 40px; border-top: 1px solid var(--border); }
+  .stat { display: flex; flex-direction: column; gap: 4px; }
+  .stat-val { font-size: 26px; font-weight: 800; color: var(--purple); letter-spacing: -1px; }
+  .stat-lbl { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  section { padding: 80px 40px; max-width: 1000px; margin: 0 auto; }
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--purple); margin-bottom: 12px; }
+  h2 { font-size: clamp(26px, 3.5vw, 38px); font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; }
+  .section-sub { font-size: 16px; color: var(--muted); max-width: 560px; margin-bottom: 40px; line-height: 1.6; }
+
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .feature-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; transition: border-color 0.2s; }
+  .feature-card:hover { border-color: var(--border2); }
+  .feature-icon { font-size: 24px; margin-bottom: 12px; }
+  .feature-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .feature-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* Agent flow diagram */
+  .flow { display: flex; flex-direction: column; gap: 0; max-width: 640px; }
+  .flow-step { display: flex; gap: 20px; }
+  .flow-line { display: flex; flex-direction: column; align-items: center; }
+  .flow-dot { width: 32px; height: 32px; border-radius: 50%; background: var(--purple-dim); border: 2px solid var(--purple-border); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--purple); flex-shrink: 0; }
+  .flow-connector { width: 2px; flex: 1; background: var(--border); margin: 4px 0; min-height: 24px; }
+  .flow-content { padding: 4px 0 28px; }
+  .flow-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .flow-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .flow-tag { display: inline-block; font-size: 10px; font-weight: 700; background: var(--purple-dim); color: var(--purple); border: 1px solid var(--purple-border); border-radius: 4px; padding: 2px 8px; margin-top: 6px; }
+
+  .callout { background: var(--purple-dim); border: 1px solid var(--purple-border); border-radius: 10px; padding: 20px 24px; margin: 32px 0; font-size: 14px; color: var(--text); line-height: 1.7; }
+  .callout strong { color: var(--purple); }
+
+  .decision-list { display: flex; flex-direction: column; gap: 20px; }
+  .decision { background: var(--bg2); border: 1px solid var(--border); border-left: 3px solid var(--purple); border-radius: 0 10px 10px 0; padding: 20px 24px; }
+  .decision-q { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .decision-a { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  .agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+  .agent-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .agent-name { font-size: 13px; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+  .agent-role { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  footer { text-align: center; padding: 40px; color: var(--muted2); font-size: 13px; border-top: 1px solid var(--border); }
+  footer a { color: var(--purple); text-decoration: none; }
+
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .hero { padding: 100px 20px 60px; }
+    section { padding: 48px 20px; }
+    h1 { letter-spacing: -1px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-back">← Back</a>
+  <a href="index.html" class="nav-name">Jesse Harrick</a>
+  <a href="https://github.com/JessTheGPT/TEAIMS" class="nav-cta" target="_blank">GitHub ↗</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">🤖 Multi-Agent System</div>
+  <h1>TEAIMS<span>.</span></h1>
+  <p class="hero-sub">A multi-agent AI operating system built around one principle: no irreversible action without human sign-off. Adversarial debate, governance checkpoints, persistent audit log — agentic safety made concrete.</p>
+  <div class="hero-actions">
+    <a href="https://github.com/JessTheGPT/TEAIMS" class="btn btn-primary" target="_blank">View on GitHub ↗</a>
+    <a href="index.html" class="btn btn-ghost">← Portfolio</a>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><span class="stat-val">N-agent</span><span class="stat-lbl">Orchestration</span></div>
+    <div class="stat"><span class="stat-val">HITL</span><span class="stat-lbl">Checkpoints</span></div>
+    <div class="stat"><span class="stat-val">Adversarial</span><span class="stat-lbl">Debate Pattern</span></div>
+    <div class="stat"><span class="stat-val">Full</span><span class="stat-lbl">Audit Log</span></div>
+  </div>
+</div>
+
+<!-- WHY -->
+<section>
+  <div class="section-label">Motivation</div>
+  <h2>The problem with agentic AI today.</h2>
+  <p class="section-sub">Most agent frameworks optimize for capability. TEAIMS optimizes for trustworthiness — the ability to act autonomously while remaining auditable and controllable.</p>
+
+  <div class="callout">
+    <strong>The core tension:</strong> An agent that always asks for permission isn't useful. An agent that never asks for permission is dangerous. TEAIMS is an architecture for navigating that line — with explicit checkpoints, adversarial internal debate, and a complete decision record.
+  </div>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">⚠️</div>
+      <div class="feature-title">Autonomous ≠ Trustworthy</div>
+      <div class="feature-desc">LLM agents can hallucinate, misinterpret intent, and take actions that are hard to reverse. A capable agent without governance is a liability.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <div class="feature-title">No audit trail = no accountability</div>
+      <div class="feature-desc">When an agent takes an action and it goes wrong, you need to know why. Most frameworks offer no persistent reasoning log — just outputs.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🤝</div>
+      <div class="feature-title">Single-agent = single point of failure</div>
+      <div class="feature-desc">One agent making high-stakes decisions with no internal challenge mechanism. Adversarial debate surfaces risks before they become irreversible actions.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section>
+  <div class="section-label">Architecture</div>
+  <h2>How TEAIMS works.</h2>
+  <p class="section-sub">Task intake → specialized agent routing → internal debate → risk classification → HITL checkpoint (if needed) → execution → audit log.</p>
+
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-line"><div class="flow-dot">1</div><div class="flow-connector"></div></div>
+      <div class="flow-content">
+        <div class="flow-title">Task Intake & Classification</div>
+        <div class="flow-desc">Incoming task is parsed and classified by type, domain, and estimated reversibility. High-stakes tasks are flagged immediately for mandatory human review before routing.</div>
+        <span class="flow-tag">ROUTER AGENT</span>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-line"><div class="flow-dot">2</div><div class="flow-connector"></div></div>
+      <div class="flow-content">
+        <div class="flow-title">Specialized Agent Assignment</div>
+        <div class="flow-desc">Task routed to the appropriate domain agent (research, code, finance, communication). Each agent has scoped tools and constrained authority — no agent has universal permissions.</div>
+        <span class="flow-tag">SPECIALIST AGENTS</span>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-line"><div class="flow-dot">3</div><div class="flow-connector"></div></div>
+      <div class="flow-content">
+        <div class="flow-title">Adversarial Debate</div>
+        <div class="flow-desc">A dedicated "challenger" agent reviews the specialist's proposed action and argues against it — surfacing risks, edge cases, and alternative interpretations. Both positions are logged.</div>
+        <span class="flow-tag">DEBATE PATTERN</span>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-line"><div class="flow-dot">4</div><div class="flow-connector"></div></div>
+      <div class="flow-content">
+        <div class="flow-title">Risk Classification</div>
+        <div class="flow-desc">Outcome of the debate feeds into a risk scorer. Reversible, low-confidence actions proceed automatically. Irreversible or high-risk actions trigger a HITL checkpoint — no exceptions.</div>
+        <span class="flow-tag">RISK ENGINE</span>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-line"><div class="flow-dot">5</div><div class="flow-connector"></div></div>
+      <div class="flow-content">
+        <div class="flow-title">HITL Checkpoint</div>
+        <div class="flow-desc">Human-in-the-loop pause. The system presents the proposed action, the debate summary, the risk score, and a plain-language explanation. Human approves, rejects, or redirects. No auto-bypass.</div>
+        <span class="flow-tag">HUMAN GATE</span>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-line"><div class="flow-dot">6</div><div class="flow-dot" style="margin-top:4px;"></div></div>
+      <div class="flow-content">
+        <div class="flow-title">Execution + Audit Log</div>
+        <div class="flow-desc">Action executes. Every step — task, routing decision, debate positions, risk score, human decision, outcome — written to persistent judgement log. Searchable, reviewable, immutable.</div>
+        <span class="flow-tag">JUDGEMENT LOG</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AGENTS -->
+<section>
+  <div class="section-label">Agents</div>
+  <h2>The team inside the system.</h2>
+  <p class="section-sub">Each agent has a defined role, scoped tools, and bounded authority. No agent can exceed its lane without explicit escalation.</p>
+
+  <div class="agent-grid">
+    <div class="agent-card">
+      <div class="agent-name">Router</div>
+      <div class="agent-role">Classifies tasks, assigns specialists, flags high-risk tasks for immediate HITL escalation</div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name">Research Agent</div>
+      <div class="agent-role">Web search, document retrieval, synthesis. Read-only tools. Cannot take external actions.</div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name">Code Agent</div>
+      <div class="agent-role">Code generation, review, testing. Sandboxed execution. File writes require risk classification.</div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name">Finance Agent</div>
+      <div class="agent-role">Market analysis, portfolio review, structured memos. No execution authority — outputs only.</div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name">Comms Agent</div>
+      <div class="agent-role">Drafts emails, messages, documents. All sends require explicit human approval — never auto-sends.</div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name">Challenger</div>
+      <div class="agent-role">Adversarial reviewer. Argues against every proposed action. Surfaces risks and edge cases.</div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name">Risk Scorer</div>
+      <div class="agent-role">Aggregates debate output into reversibility + confidence scores. Routes to HITL or auto-execute.</div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name">Audit Logger</div>
+      <div class="agent-role">Writes every decision, debate, and action to persistent storage. Append-only, never editable.</div>
+    </div>
+  </div>
+</section>
+
+<!-- KEY DECISIONS -->
+<section>
+  <div class="section-label">Design Decisions</div>
+  <h2>Why it's built this way.</h2>
+
+  <div class="decision-list">
+    <div class="decision">
+      <div class="decision-q">Why adversarial debate instead of consensus?</div>
+      <div class="decision-a">Consensus among agents producing similar outputs doesn't catch blind spots — they share the same training distribution biases. A dedicated challenger with explicit instructions to find flaws surfaces risks that cooperative agents miss. It's uncomfortable, and that's the point.</div>
+    </div>
+    <div class="decision">
+      <div class="decision-q">Why hard HITL gates instead of confidence thresholds?</div>
+      <div class="decision-a">Confidence thresholds can be gamed or miscalibrated. A hard gate on irreversibility is binary and unambiguous — if the action can't be undone, a human sees it. No exceptions, no config flags, no "auto-approve after N seconds." This matters in regulated environments.</div>
+    </div>
+    <div class="decision">
+      <div class="decision-q">Why an append-only judgement log?</div>
+      <div class="decision-a">Audit trails only work if they can't be retroactively modified. Every decision, including overridden ones, stays in the log. This is how financial systems and medical record systems work — the history is the truth, not just the outcome.</div>
+    </div>
+    <div class="decision">
+      <div class="decision-q">Why scope each agent's tools explicitly?</div>
+      <div class="decision-a">A research agent that can also send emails is a misconfigured agent. Least-privilege at the agent level mirrors least-privilege in traditional security. If the code agent is compromised or hallucinates, it can't send a wire transfer.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SAFETY FELLOWSHIP ANGLE -->
+<section>
+  <div class="section-label">Research Angle</div>
+  <h2>Why this matters for AI safety.</h2>
+  <div class="callout">
+    <strong>Agentic oversight</strong> is one of OpenAI's stated priority areas for safety research. TEAIMS is a concrete implementation of the question: how do you preserve meaningful human control over an AI system that is designed to act autonomously? The adversarial debate pattern, the hard HITL gates, and the persistent audit log are all design primitives that could be formalized into benchmarks or evaluation frameworks.
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <div class="feature-title">Benchmarkable patterns</div>
+      <div class="feature-desc">The debate-to-HITL pipeline could be formalized as a benchmark: given a set of tasks, how often does adversarial debate surface real risks vs. false positives? What's the calibration of the risk scorer?</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚖️</div>
+      <div class="feature-title">Human oversight at scale</div>
+      <div class="feature-desc">HITL doesn't scale naively. TEAIMS is an attempt to minimize human review to only the cases where it's truly necessary — without creating auto-approval loopholes. That tradeoff is worth studying.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏛️</div>
+      <div class="feature-title">Governance primitives</div>
+      <div class="feature-desc">The audit log, the role scoping, and the challenger pattern are governance primitives. They translate to regulated environments (finance, healthcare) where AI decisions must be explainable and reversible.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>TEAIMS — Built by <a href="index.html">Jesse Harrick</a> · <a href="https://github.com/JessTheGPT/TEAIMS" target="_blank">GitHub</a></p>
+</footer>
+</body>
+</html>
